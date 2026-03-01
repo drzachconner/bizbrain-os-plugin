@@ -22,9 +22,19 @@ escape_for_json() {
     printf '%s' "$s"
 }
 
+# --- Check Dependencies ---
+HAS_NODE=false
+if command -v node &>/dev/null; then
+  HAS_NODE=true
+fi
+
 # --- Generate Context ---
 if [ -n "$BRAIN_PATH" ] && [ -d "$BRAIN_PATH" ]; then
-  CONTEXT=$(node "${PLUGIN_ROOT}/scripts/generate-context.js" "$BRAIN_PATH" "$BIZBRAIN_MODE" "$BIZBRAIN_ZONE" "$BIZBRAIN_ROOT" 2>/dev/null || echo "# BizBrain OS\n\nError loading brain context. Run \`/brain status\` to diagnose.")
+  if [ "$HAS_NODE" = true ]; then
+    CONTEXT=$(node "${PLUGIN_ROOT}/scripts/generate-context.js" "$BRAIN_PATH" "$BIZBRAIN_MODE" "$BIZBRAIN_ZONE" "$BIZBRAIN_ROOT" 2>/dev/null || echo "# BizBrain OS\n\nError loading brain context. Run \`/brain status\` to diagnose.")
+  else
+    CONTEXT="# BizBrain OS\n\nBrain found at \`$BRAIN_PATH\` but Node.js is required for context generation.\nInstall Node.js 18+ and restart Claude Code.\n\n## Available Commands\n| Command | Description |\n|---------|-------------|\n| \`/brain status\` | Show brain status |\n| \`/todo\` | View tasks |\n| \`/knowledge <topic>\` | Load brain knowledge |"
+  fi
 else
   CONTEXT="# BizBrain OS\n\nNo brain folder found. Run \`/brain setup\` to scan your machine and create your knowledge brain.\n\n## Available Commands\n| Command | Description |\n|---------|-------------|\n| \`/brain setup\` | First-time setup |\n| \`/brain status\` | Show brain status |"
 fi

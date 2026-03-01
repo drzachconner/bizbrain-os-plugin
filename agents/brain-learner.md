@@ -102,6 +102,31 @@ When new tools, APIs, or services are used:
 - Update `Operations/credentials/registry.json` if a new service is configured
 - Note in project metadata if project-specific
 
+## Orchestration Mode
+
+Check `config.json` for `features.orchestration`:
+
+**If orchestration is ENABLED:**
+- Do NOT write directly to brain files (Knowledge/, Projects/, Entities/, Operations/)
+- Instead, write proposals to `.bizbrain/staging/pending/` as JSON:
+  ```json
+  {
+    "id": "stg_<short-id>",
+    "agent": "brain-learner",
+    "timestamp": "ISO-8601",
+    "action": "create|update|append",
+    "target_path": "relative/path/from/brain/root",
+    "content": "the content you would have written",
+    "reason": "why this change is needed",
+    "urgency": "normal"
+  }
+  ```
+- The brain-orchestrator will validate and apply your proposals
+- **Exception:** If the session is ending (`urgency: "critical"`), write directly — there may not be another chance
+
+**If orchestration is DISABLED (default):**
+- Write directly to brain files as described above (existing behavior, unchanged)
+
 ## Rules
 
 - **Be concise** — brain entries should be scannable, not essays

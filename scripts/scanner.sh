@@ -2,14 +2,67 @@
 # BizBrain OS — Machine Scanner
 # Discovers projects, documents, services, and tools on the machine.
 # Output: structured text to stdout
-# Usage: scanner.sh [profile-id]
+# Usage: scanner.sh [profile-id] [plugin-root]
 
 set -euo pipefail
 
-# Default scan paths (overridden by profile)
-CODE_PATHS=("$HOME/Repos" "$HOME/Projects" "$HOME/Code" "$HOME/src")
-DOC_PATHS=("$HOME/Documents")
-RECENT_PATHS=("$HOME/Desktop" "$HOME/Downloads")
+PROFILE_ID="${1:-developer}"
+PLUGIN_ROOT="${2:-}"
+
+# --- Load scan paths from profile (fall back to sensible defaults) ---
+CODE_PATHS=()
+DOC_PATHS=()
+RECENT_PATHS=()
+
+_load_profile_paths() {
+  local profile_file=""
+  if [ -n "$PLUGIN_ROOT" ] && [ -f "$PLUGIN_ROOT/profiles/${PROFILE_ID}.json" ]; then
+    profile_file="$PLUGIN_ROOT/profiles/${PROFILE_ID}.json"
+  fi
+
+  if [ -n "$profile_file" ] && command -v node &>/dev/null; then
+    # Read scan_paths from profile JSON
+    local paths_json
+    paths_json=$(node -e "
+      try {
+        const p = require('$profile_file');
+        const sp = p.scan_paths || {};
+        const expand = arr => (arr || []).map(s => s.replace(/^~/, process.env.HOME || ''));
+        console.log(JSON.stringify({
+          code: expand(sp.code),
+          documents: expand(sp.documents),
+          recent: expand(sp.recent)
+        }));
+      } catch(e) { console.log('{}'); }
+    " 2>/dev/null || echo "{}")
+
+    # Parse into arrays
+    while IFS= read -r p; do
+      [ -n "$p" ] && CODE_PATHS+=("$p")
+    done < <(echo "$paths_json" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{JSON.parse(d).code.forEach(p=>console.log(p))}catch(e){}})" 2>/dev/null)
+
+    while IFS= read -r p; do
+      [ -n "$p" ] && DOC_PATHS+=("$p")
+    done < <(echo "$paths_json" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{JSON.parse(d).documents.forEach(p=>console.log(p))}catch(e){}})" 2>/dev/null)
+
+    while IFS= read -r p; do
+      [ -n "$p" ] && RECENT_PATHS+=("$p")
+    done < <(echo "$paths_json" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{JSON.parse(d).recent.forEach(p=>console.log(p))}catch(e){}})" 2>/dev/null)
+  fi
+
+  # Fall back to defaults if profile loading produced nothing
+  if [ ${#CODE_PATHS[@]} -eq 0 ]; then
+    CODE_PATHS=("$HOME/Repos" "$HOME/Projects" "$HOME/Code" "$HOME/src")
+  fi
+  if [ ${#DOC_PATHS[@]} -eq 0 ]; then
+    DOC_PATHS=("$HOME/Documents")
+  fi
+  if [ ${#RECENT_PATHS[@]} -eq 0 ]; then
+    RECENT_PATHS=("$HOME/Desktop" "$HOME/Downloads")
+  fi
+}
+
+_load_profile_paths
 
 # Also scan workspaces directory if it exists (full mode)
 BIZBRAIN_ROOT="${BIZBRAIN_PATH:-$HOME/bizbrain-os}"

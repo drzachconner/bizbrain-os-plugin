@@ -56,7 +56,14 @@
     { "path": "Operations/learning/patterns", "description": "Detected behavioral patterns" },
     { "path": "Operations/learning/history", "description": "Session history" },
     { "path": "Operations/integrations", "description": "Connected service configurations" },
-    { "path": ".bizbrain", "description": "Plugin state (managed by BizBrain OS)" }
+    { "path": ".bizbrain", "description": "Plugin state (managed by BizBrain OS)" },
+    { "path": ".bizbrain/events", "description": "Orchestration event queue" },
+    { "path": ".bizbrain/events/_processed", "description": "Processed events archive" },
+    { "path": ".bizbrain/staging", "description": "Staged brain changes awaiting validation" },
+    { "path": ".bizbrain/staging/pending", "description": "Pending staged proposals" },
+    { "path": ".bizbrain/staging/conflicts", "description": "Conflicting proposals requiring resolution" },
+    { "path": ".bizbrain/staging/_processed", "description": "Validated and applied proposals" },
+    { "path": ".bizbrain/changelog", "description": "Audit trail of all brain changes" }
   ],
   "features": {
     "entity_management": [
@@ -93,6 +100,9 @@
       { "path": "Operations/meetings", "description": "Meeting transcription data" },
       { "path": "Operations/meetings/transcripts", "description": "Saved meeting transcripts" },
       { "path": "Operations/meetings/_audio", "description": "Temporary audio chunks" }
+    ],
+    "orchestration": [
+      { "path": "Operations/learning/patterns/workflows.json", "description": "Learned workflow patterns" }
     ]
   }
 }

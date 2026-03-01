@@ -518,14 +518,116 @@ function generateExternalContext() {
 }
 
 // ============================================================================
+// ORCHESTRATOR BRIEF (appended when orchestration is enabled)
+// ============================================================================
+
+function loadOrchestratorBrief() {
+  const brief = { events: 0, pending: 0, conflicts: 0, changelog: [] };
+
+  // Count queued events
+  const eventsDir = path.join(brainPath, '.bizbrain', 'events');
+  if (fs.existsSync(eventsDir)) {
+    try {
+      brief.events = fs.readdirSync(eventsDir)
+        .filter(f => f.endsWith('.json')).length;
+    } catch(e) {}
+  }
+
+  // Count pending staged proposals
+  const pendingDir = path.join(brainPath, '.bizbrain', 'staging', 'pending');
+  if (fs.existsSync(pendingDir)) {
+    try {
+      brief.pending = fs.readdirSync(pendingDir)
+        .filter(f => f.endsWith('.json')).length;
+    } catch(e) {}
+  }
+
+  // Count conflicts
+  const conflictsDir = path.join(brainPath, '.bizbrain', 'staging', 'conflicts');
+  if (fs.existsSync(conflictsDir)) {
+    try {
+      brief.conflicts = fs.readdirSync(conflictsDir)
+        .filter(f => f.endsWith('.json')).length;
+    } catch(e) {}
+  }
+
+  // Recent changelog entries (today)
+  const today = new Date().toISOString().split('T')[0];
+  const changelogPath = path.join(brainPath, '.bizbrain', 'changelog', `${today}.md`);
+  if (fs.existsSync(changelogPath)) {
+    try {
+      const content = fs.readFileSync(changelogPath, 'utf8');
+      const entries = content.split('\n## ').filter(e => e.trim());
+      brief.changelog = entries.slice(-3).map(e => {
+        const firstLine = e.split('\n')[0].trim();
+        return firstLine.replace(/^#+\s*/, '');
+      });
+    } catch(e) {}
+  }
+
+  return brief;
+}
+
+// ============================================================================
 // CONTINUOUS LEARNING BLOCK (appended to brain + conversations zones)
 // ============================================================================
 
 function appendContinuousLearning(lines) {
+  const orchestrationEnabled = features?.orchestration === true;
+
+  if (orchestrationEnabled) {
+    // Orchestrator mode — Brain Swarm active
+    const brief = loadOrchestratorBrief();
+    lines.push('## Brain Swarm (ACTIVE)');
+    lines.push('');
+    lines.push(`> Queue: ${brief.events} events | Staged: ${brief.pending} pending | Conflicts: ${brief.conflicts} | Use \`/swarm\` to manage`);
+    lines.push('');
+    if (brief.changelog.length > 0) {
+      lines.push('**Recent brain changes:**');
+      brief.changelog.forEach(entry => lines.push(`- ${entry}`));
+      lines.push('');
+    }
+    lines.push('**Orchestration is ON.** Agent writes go through staging → validation → changelog.');
+    lines.push('The brain-orchestrator coordinates entity-watchdog, brain-learner, and brain-gateway.');
+    lines.push('');
+
+    // Routing table summary
+    lines.push('### Agent Routing');
+    lines.push('| Task | Agent | Tier |');
+    lines.push('|------|-------|------|');
+    if (config.routing) {
+      for (const [task, route] of Object.entries(config.routing)) {
+        lines.push(`| ${task.replace(/_/g, ' ')} | ${route.agent} | ${route.tier} |`);
+      }
+    }
+    lines.push('');
+
+    // Workflow patterns summary
+    const patternsPath = path.join(brainPath, 'Operations', 'learning', 'patterns', 'workflows.json');
+    if (fs.existsSync(patternsPath)) {
+      try {
+        const patterns = JSON.parse(fs.readFileSync(patternsPath, 'utf8'));
+        const active = (patterns.patterns || []).filter(p => p.confidence >= 0.5);
+        if (active.length > 0) {
+          lines.push(`### Active Patterns (${active.length})`);
+          active.slice(0, 5).forEach(p => {
+            lines.push(`- **${p.id}** (${(p.confidence * 100).toFixed(0)}% conf, used ${p.times_used}x)`);
+          });
+          lines.push('');
+        }
+      } catch(e) {}
+    }
+  }
+
   lines.push('## Continuous Learning (ACTIVE)');
   lines.push('');
-  lines.push('**You MUST proactively feed learnings back to the brain throughout this session.**');
-  lines.push('Use the `brain-learner` agent to write back observations. Do NOT wait for the user to ask.');
+  if (orchestrationEnabled) {
+    lines.push('**Agents write proposals to staging.** The orchestrator validates and applies them.');
+    lines.push('Invoke agents as before — the orchestration layer handles the rest transparently.');
+  } else {
+    lines.push('**You MUST proactively feed learnings back to the brain throughout this session.**');
+    lines.push('Use the `brain-learner` agent to write back observations. Do NOT wait for the user to ask.');
+  }
   lines.push('');
   lines.push('### Auto-Capture Triggers');
   lines.push('');

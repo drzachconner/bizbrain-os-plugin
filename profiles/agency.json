@@ -18,7 +18,8 @@
     "content_pipeline": true,
     "outreach_engine": true,
     "session_archiving": true,
-    "meeting_transcription": true
+    "meeting_transcription": true,
+    "orchestration": true
   },
   "auto_behaviors": {
     "entity_detection": "auto_update",

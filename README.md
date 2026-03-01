@@ -48,6 +48,7 @@ The brain scans your machine, shows what it found, lets you choose what to track
 | **Content Pipeline** | Content creation, scheduling, and publishing workflow |
 | **Session Archiving** | Archive Claude Code sessions for searchability and reference |
 | **Meeting Transcription** | Local meeting recording and transcription — replaces Otter.ai for $0/month |
+| **Brain Swarm** | Orchestration layer that coordinates all brain agents with event queue, staging validation, changelog audit trail, workflow pattern learning, and smart model routing |
 
 ## How It Works
 
@@ -118,6 +119,7 @@ After install and `/brain setup`, here's how to use BizBrain OS day-to-day:
 | `/intake` | Process files dropped into the intake folder |
 | `/mcp` | MCP server management: status, enable, disable, profiles |
 | `/meetings` | Local meeting transcription: record, transcribe, review |
+| `/swarm` | Brain Swarm orchestration: status, process events, resolve conflicts, view changelog |
 
 ## Profiles
 
@@ -155,8 +157,9 @@ BizBrain OS includes a registry of 34+ service integrations with guided credenti
 
 ## Agents
 
-BizBrain OS includes two background agents:
+BizBrain OS includes four background agents:
 
+- **Brain Orchestrator** — Coordinates all brain agents via event queue, staging validation, and changelog audit trail (NEW in v3.0.2)
 - **Entity Watchdog** — Automatically detects entity mentions in conversations and maintains brain records
 - **Brain Gateway** — Provides full brain access from any repository or project
 - **Brain Learner** — Continuous learning agent that captures observations back to the brain
@@ -176,7 +179,7 @@ bizbrain-os-plugin/
       post-tool-use       # Continuous learning + time tracking
   commands/               # Slash commands (/brain, /mcp, /todo, /meetings, etc.)
   skills/                 # Deep capabilities (brain-bootstrap, meeting-transcription, etc.)
-  agents/                 # Background agents (entity-watchdog, brain-gateway, brain-learner)
+  agents/                 # Background agents (brain-orchestrator, entity-watchdog, brain-gateway, brain-learner)
   tools/
     meeting-transcriber/  # Python package: local meeting transcription daemon
   profiles/               # Role-based feature profiles (5 built-in)
@@ -188,6 +191,39 @@ bizbrain-os-plugin/
     folder-structure.json # Brain folder structure definitions
     integrations-registry.json  # 34+ service integration definitions
 ```
+
+## Brain Swarm (NEW in v3.0.2)
+
+The Brain Swarm orchestration layer transforms independent brain agents into a coordinated system:
+
+```
+User Session → PostToolUse → Event Queue → Orchestrator → Agents → Staging → Validation → Brain → Changelog
+```
+
+**What it adds:**
+- **Event Queue** — Every tool use generates an event; the orchestrator processes them in order
+- **Staging Area** — Agents write proposals instead of directly modifying brain files; the orchestrator validates before applying
+- **Conflict Detection** — When two agents try to modify the same file, conflicts are flagged for user resolution
+- **Changelog Audit Trail** — Every brain change is logged with what/why/source for full traceability
+- **Workflow Patterns** — The system learns successful multi-agent sequences and replays them automatically
+- **Smart Model Routing** — Routes simple tasks to haiku (fast/cheap) and complex tasks to sonnet, saving 40-60% on agent operations
+
+**Enable it:**
+```json
+// In your brain's config.json
+{ "features": { "orchestration": true } }
+```
+
+**Manage it:**
+```
+/swarm              # Status: queue depth, pending, conflicts, recent changes
+/swarm process      # Manually process event queue
+/swarm conflicts    # View and resolve staging conflicts
+/swarm changelog    # View audit trail
+/swarm patterns     # View learned workflow patterns
+```
+
+Brain Swarm is opt-in (disabled by default). When disabled, all agents work exactly as in v3.0.1 — zero behavior change.
 
 ## Requirements
 

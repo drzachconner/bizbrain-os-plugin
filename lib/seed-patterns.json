@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "patterns": [
+    {
+      "id": "new_project_onboarding",
+      "trigger": "Untracked repo detected in .bizbrain/untracked-repos/",
+      "sequence": ["brain-learner:read_repo", "brain-learner:create_meta", "brain-learner:create_overview", "brain-learner:remove_untracked_flag"],
+      "confidence": 0.9,
+      "times_used": 0
+    },
+    {
+      "id": "entity_mention_update",
+      "trigger": "Entity name or alias mentioned with new information",
+      "sequence": ["entity-watchdog:read_entity_index", "entity-watchdog:match_entity", "entity-watchdog:update_records"],
+      "confidence": 0.85,
+      "times_used": 0
+    },
+    {
+      "id": "decision_capture",
+      "trigger": "User makes architectural, technical, or business decision",
+      "sequence": ["brain-learner:detect_decision", "brain-learner:log_decision"],
+      "confidence": 0.8,
+      "times_used": 0
+    },
+    {
+      "id": "session_wrapup",
+      "trigger": "User indicates session is ending or significant work block complete",
+      "sequence": ["brain-learner:summarize_session", "brain-learner:update_project_status", "brain-learner:extract_pending_items"],
+      "confidence": 0.9,
+      "times_used": 0
+    },
+    {
+      "id": "action_item_extraction",
+      "trigger": "User mentions a task, deadline, or follow-up",
+      "sequence": ["brain-learner:parse_action", "brain-learner:route_to_project_or_global", "brain-learner:write_action_item"],
+      "confidence": 0.85,
+      "times_used": 0
+    },
+    {
+      "id": "client_meeting_debrief",
+      "trigger": "User discusses a meeting with a client, partner, or vendor",
+      "sequence": ["entity-watchdog:identify_entities", "brain-learner:extract_action_items", "brain-learner:log_interaction", "entity-watchdog:update_history"],
+      "confidence": 0.75,
+      "times_used": 0
+    }
+  ]
+}

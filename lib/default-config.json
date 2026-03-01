@@ -1,5 +1,5 @@
 {
-  "version": "3.0.1",
+  "version": "3.0.2",
   "mode": "compact",
   "profile_id": "",
   "profile": {
@@ -28,7 +28,16 @@
     "outreach_engine": false,
     "session_archiving": true,
     "continuous_learning": true,
-    "meeting_transcription": false
+    "meeting_transcription": false,
+    "orchestration": false
+  },
+  "routing": {
+    "entity_detection": { "agent": "entity-watchdog", "tier": "haiku" },
+    "decision_logging": { "agent": "brain-learner", "tier": "haiku" },
+    "project_onboarding": { "agent": "brain-learner", "tier": "haiku" },
+    "session_summary": { "agent": "brain-learner", "tier": "haiku" },
+    "conflict_resolution": { "agent": "brain-orchestrator", "tier": "haiku" },
+    "brain_access": { "agent": "brain-gateway", "tier": "sonnet" }
   },
   "auto_behaviors": {
     "entity_detection": "auto_update",

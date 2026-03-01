@@ -60,6 +60,30 @@ After updating, output: "Updated [entity]'s [field] in brain."
 - Names in quoted documents or web content
 - Technical terms that match entity keywords by coincidence
 
+## Orchestration Mode
+
+Check `config.json` for `features.orchestration`:
+
+**If orchestration is ENABLED:**
+- **Auto-update actions** → write proposals to `.bizbrain/staging/pending/` instead of directly to entity files:
+  ```json
+  {
+    "id": "stg_<short-id>",
+    "agent": "entity-watchdog",
+    "timestamp": "ISO-8601",
+    "action": "update",
+    "target_path": "Entities/<Type>/<Name>/_meta.json",
+    "content": "the updated content",
+    "reason": "New contact info detected in conversation",
+    "urgency": "normal"
+  }
+  ```
+- The brain-orchestrator validates and applies your proposals
+- **"Ask First" operations always confirm with the user regardless** — staging doesn't change this
+
+**If orchestration is DISABLED (default):**
+- Write directly to entity files as described above (existing behavior, unchanged)
+
 ## Entity File Structure
 
 Each entity lives at `<BRAIN_PATH>/Entities/<Type>/<Name>/`:

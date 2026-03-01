@@ -558,6 +558,7 @@ If the user selects a vault:
      ✓ SessionEnd hook — Captures session duration and metadata
      ✓ Entity Watchdog — Monitors sessions for client/partner mentions
      ✓ Brain Learner — Writes back decisions, action items, and session summaries
+     ✓ Brain Orchestrator — Coordinates agents via event queue, staging, and changelog
      ✓ Continuous Learning — Every session compounds context for the next one
 
    What happens from here:
@@ -573,6 +574,7 @@ If the user selects a vault:
      /todo            — View tasks across all projects
      /entity <name>   — Look up any client or collaborator
      /gsd             — Structured project execution
+     /swarm           — Brain Swarm orchestration (status, process, conflicts)
 
    Restart Claude Code to activate all hooks and agents.
    ```
