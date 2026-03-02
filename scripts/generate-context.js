@@ -576,54 +576,147 @@ function appendContinuousLearning(lines) {
   const orchestrationEnabled = features?.orchestration === true;
 
   if (orchestrationEnabled) {
-    // Orchestrator mode — Brain Swarm active
+    // Orchestrator mode — Brain Swarm active, make it VERY visible
     const brief = loadOrchestratorBrief();
-    lines.push('## Brain Swarm (ACTIVE)');
+
+    // ── Swarm Header ──────────────────────────────────────────────
+    lines.push('## BRAIN SWARM — ACTIVE');
     lines.push('');
-    lines.push(`> Queue: ${brief.events} events | Staged: ${brief.pending} pending | Conflicts: ${brief.conflicts} | Use \`/swarm\` to manage`);
-    lines.push('');
-    if (brief.changelog.length > 0) {
-      lines.push('**Recent brain changes:**');
-      brief.changelog.forEach(entry => lines.push(`- ${entry}`));
-      lines.push('');
-    }
-    lines.push('**Orchestration is ON.** Agent writes go through staging → validation → changelog.');
-    lines.push('The brain-orchestrator coordinates entity-watchdog, brain-learner, and brain-gateway.');
+    lines.push('```');
+    lines.push('╔══════════════════════════════════════════════════════════════╗');
+    lines.push('║                    BRAIN SWARM CONTROL                      ║');
+    lines.push('╠══════════════════════════════════════════════════════════════╣');
+    lines.push('║                                                              ║');
+    lines.push(`║  EVENT QUEUE ···· ${String(brief.events).padStart(3)} waiting    STAGED ········ ${String(brief.pending).padStart(3)} pending  ║`);
+    lines.push(`║  CONFLICTS ····· ${String(brief.conflicts).padStart(3)} flagged    CHANGELOG ····· ${brief.changelog.length > 0 ? 'active ' : 'empty  '}   ║`);
+    lines.push('║                                                              ║');
+    lines.push('╚══════════════════════════════════════════════════════════════╝');
+    lines.push('```');
     lines.push('');
 
-    // Routing table summary
+    // ── Agent Roster — each agent with its color identity ─────────
+    lines.push('### Agent Swarm Roster');
+    lines.push('');
+    lines.push('```');
+    lines.push('  ORCHESTRATOR  [YELLOW]  ★ brain-orchestrator  — Conductor. Validates, routes, resolves.');
+    lines.push('  WATCHDOG      [CYAN]    ◆ entity-watchdog     — Detects entity mentions, updates records.');
+    lines.push('  LEARNER       [GREEN]   ● brain-learner       — Captures decisions, actions, summaries.');
+    lines.push('  GATEWAY       [BLUE]    ■ brain-gateway       — Full brain access from any repo.');
+    lines.push('```');
+    lines.push('');
+
+    // ── Live Flow Diagram ─────────────────────────────────────────
+    lines.push('### Data Flow');
+    lines.push('');
+    lines.push('```');
+    lines.push('  PostToolUse ──→ EVENT QUEUE ──→ ★ ORCHESTRATOR ──┬──→ ◆ WATCHDOG');
+    lines.push('                                       │            ├──→ ● LEARNER');
+    lines.push('                                       │            └──→ ■ GATEWAY');
+    lines.push('                                       ▼');
+    lines.push('                                  STAGING AREA');
+    lines.push('                                       │');
+    lines.push('                              ┌────────┴────────┐');
+    lines.push('                              ▼                 ▼');
+    lines.push('                          VALIDATE          CONFLICTS');
+    lines.push('                              │             (flagged)');
+    lines.push('                              ▼');
+    lines.push('                         BRAIN FILES ──→ CHANGELOG');
+    lines.push('```');
+    lines.push('');
+
+    // ── Recent Changelog Activity ─────────────────────────────────
+    if (brief.changelog.length > 0) {
+      lines.push('### Recent Brain Changes');
+      brief.changelog.forEach(entry => {
+        // Try to identify which agent made the change and prefix with its marker
+        let marker = '  ';
+        if (entry.includes('orchestrator')) marker = '★ ';
+        else if (entry.includes('watchdog')) marker = '◆ ';
+        else if (entry.includes('learner')) marker = '● ';
+        else if (entry.includes('gateway')) marker = '■ ';
+        lines.push(`- ${marker}${entry}`);
+      });
+      lines.push('');
+    }
+
+    // ── Routing Table with Agent Markers ──────────────────────────
     lines.push('### Agent Routing');
-    lines.push('| Task | Agent | Tier |');
-    lines.push('|------|-------|------|');
+    lines.push('| Task | Agent | Marker | Tier |');
+    lines.push('|------|-------|--------|------|');
     if (config.routing) {
+      const agentMarkers = {
+        'entity-watchdog': '◆',
+        'brain-learner': '●',
+        'brain-orchestrator': '★',
+        'brain-gateway': '■'
+      };
+      const agentColors = {
+        'entity-watchdog': 'CYAN',
+        'brain-learner': 'GREEN',
+        'brain-orchestrator': 'YELLOW',
+        'brain-gateway': 'BLUE'
+      };
       for (const [task, route] of Object.entries(config.routing)) {
-        lines.push(`| ${task.replace(/_/g, ' ')} | ${route.agent} | ${route.tier} |`);
+        const marker = agentMarkers[route.agent] || '?';
+        const color = agentColors[route.agent] || '?';
+        lines.push(`| ${task.replace(/_/g, ' ')} | ${marker} ${route.agent} | ${color} | ${route.tier} |`);
       }
     }
     lines.push('');
 
-    // Workflow patterns summary
+    // ── Workflow Patterns ─────────────────────────────────────────
     const patternsPath = path.join(brainPath, 'Operations', 'learning', 'patterns', 'workflows.json');
     if (fs.existsSync(patternsPath)) {
       try {
         const patterns = JSON.parse(fs.readFileSync(patternsPath, 'utf8'));
         const active = (patterns.patterns || []).filter(p => p.confidence >= 0.5);
         if (active.length > 0) {
-          lines.push(`### Active Patterns (${active.length})`);
-          active.slice(0, 5).forEach(p => {
-            lines.push(`- **${p.id}** (${(p.confidence * 100).toFixed(0)}% conf, used ${p.times_used}x)`);
+          lines.push(`### Learned Patterns (${active.length} active)`);
+          const agentMarkers = { 'entity-watchdog': '◆', 'brain-learner': '●', 'brain-orchestrator': '★', 'brain-gateway': '■' };
+          active.slice(0, 6).forEach(p => {
+            // Build a visual sequence showing which agents participate
+            const agents = new Set();
+            (p.sequence || []).forEach(s => {
+              const agentName = s.split(':')[0];
+              for (const [fullName, marker] of Object.entries(agentMarkers)) {
+                if (fullName.includes(agentName)) agents.add(marker);
+              }
+            });
+            const agentChain = [...agents].join(' → ');
+            const confBar = '█'.repeat(Math.round(p.confidence * 5)) + '░'.repeat(5 - Math.round(p.confidence * 5));
+            lines.push(`- \`${confBar}\` **${p.id}** — ${agentChain} (used ${p.times_used}x)`);
           });
           lines.push('');
         }
       } catch(e) {}
     }
+
+    // ── Conflict Alert ────────────────────────────────────────────
+    if (brief.conflicts > 0) {
+      lines.push('### !! CONFLICTS DETECTED !!');
+      lines.push('');
+      lines.push(`**${brief.conflicts} staging conflict(s)** need resolution. Run \`/swarm conflicts\` to review.`);
+      lines.push('Agents proposed changes to the same brain files — you decide which wins.');
+      lines.push('');
+    }
+
+    // ── Manage Command ────────────────────────────────────────────
+    lines.push('### Swarm Commands');
+    lines.push('| Command | What It Does |');
+    lines.push('|---------|-------------|');
+    lines.push('| `/swarm` | Full status dashboard |');
+    lines.push('| `/swarm process` | Process event queue now |');
+    lines.push('| `/swarm conflicts` | Resolve staging conflicts |');
+    lines.push('| `/swarm changelog` | View audit trail |');
+    lines.push('| `/swarm patterns` | View learned workflows |');
+    lines.push('');
   }
 
   lines.push('## Continuous Learning (ACTIVE)');
   lines.push('');
   if (orchestrationEnabled) {
-    lines.push('**Agents write proposals to staging.** The orchestrator validates and applies them.');
-    lines.push('Invoke agents as before — the orchestration layer handles the rest transparently.');
+    lines.push('**All agent writes flow through the swarm.** Proposals go to staging, the ★ orchestrator validates, and changes land in the brain with a full changelog entry.');
+    lines.push('Invoke agents as normal — the orchestration layer handles coordination behind the scenes.');
   } else {
     lines.push('**You MUST proactively feed learnings back to the brain throughout this session.**');
     lines.push('Use the `brain-learner` agent to write back observations. Do NOT wait for the user to ask.');
@@ -632,16 +725,32 @@ function appendContinuousLearning(lines) {
   lines.push('### Auto-Capture Triggers');
   lines.push('');
 
-  if (auto_behaviors?.action_item_extraction !== 'off') {
-    lines.push('- **Action Items:** When the user mentions a task, deadline, or follow-up → invoke brain-learner to capture it');
+  if (orchestrationEnabled) {
+    // Show triggers with agent markers so the user sees WHO handles each
+    if (auto_behaviors?.action_item_extraction !== 'off') {
+      lines.push('- **Action Items** → ● brain-learner captures tasks, deadlines, and follow-ups');
+    }
+    if (auto_behaviors?.decision_logging !== 'off') {
+      lines.push('- **Decisions** → ● brain-learner logs tech/architecture/business decisions with rationale');
+    }
+    lines.push('- **Project Status** → ● brain-learner updates project metadata when significant work completes');
+    lines.push('- **New Repos** → ● brain-learner onboards untracked git repos into the brain');
+    lines.push('- **Session Summary** → ● brain-learner saves a summary when wrapping up');
+    lines.push('- **Entity Mentions** → ◆ entity-watchdog detects and updates entity records');
+    lines.push('- **Conflicts** → ★ brain-orchestrator flags and queues for user resolution');
+    lines.push('- **Complex Ops** → ■ brain-gateway handles full brain access from any repo');
+  } else {
+    if (auto_behaviors?.action_item_extraction !== 'off') {
+      lines.push('- **Action Items:** When the user mentions a task, deadline, or follow-up → invoke brain-learner to capture it');
+    }
+    if (auto_behaviors?.decision_logging !== 'off') {
+      lines.push('- **Decisions:** When the user makes a tech/architecture/business decision → invoke brain-learner to log it');
+    }
+    lines.push('- **Project Status:** When significant work is completed on a project → invoke brain-learner to update project status');
+    lines.push('- **New Repos:** If the current working directory is a git repo NOT listed in Active Projects above → invoke brain-learner to onboard it');
+    lines.push('- **Session Summary:** Before the session ends or when wrapping up → invoke brain-learner to save a summary');
+    lines.push('- **Relationship Updates:** When collaborators are mentioned with new info → invoke entity-watchdog');
   }
-  if (auto_behaviors?.decision_logging !== 'off') {
-    lines.push('- **Decisions:** When the user makes a tech/architecture/business decision → invoke brain-learner to log it');
-  }
-  lines.push('- **Project Status:** When significant work is completed on a project → invoke brain-learner to update project status');
-  lines.push('- **New Repos:** If the current working directory is a git repo NOT listed in Active Projects above → invoke brain-learner to onboard it');
-  lines.push('- **Session Summary:** Before the session ends or when wrapping up → invoke brain-learner to save a summary');
-  lines.push('- **Relationship Updates:** When collaborators are mentioned with new info → invoke entity-watchdog');
   lines.push('');
 
   // Check for untracked repos
