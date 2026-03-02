@@ -162,6 +162,114 @@ def cmd_stop(args: list[str]) -> None:
             pid_file.unlink()
 
 
+def cmd_install(args: list[str]) -> None:
+    """Auto-install the meeting transcriber package with platform deps."""
+    current_platform = platform.system()
+    print(f"BizBrain Meetings — Auto-Install ({current_platform})\n")
+
+    # 1. Find the package directory via __file__
+    package_dir = Path(__file__).resolve().parent.parent
+    pyproject = package_dir / "pyproject.toml"
+    if not pyproject.exists():
+        print(f"Error: Could not find pyproject.toml at {package_dir}")
+        print("Expected the package directory to be the parent of meeting_transcriber/")
+        sys.exit(1)
+
+    print(f"Package: {package_dir}")
+
+    # 2. Determine platform extras
+    if current_platform == "Windows":
+        extras = "windows"
+    elif current_platform == "Darwin":
+        extras = "macos"
+    else:
+        extras = ""
+
+    # 3. Find installer (uv preferred, pip fallback)
+    import shutil
+
+    uv_path = shutil.which("uv")
+    pip_path = shutil.which("pip") or shutil.which("pip3")
+
+    if uv_path:
+        cmd = f'"{uv_path}" pip install -e ".[{extras}]"' if extras else f'"{uv_path}" pip install -e .'
+        installer = "uv"
+    elif pip_path:
+        cmd = f'"{pip_path}" install -e ".[{extras}]"' if extras else f'"{pip_path}" install -e .'
+        installer = "pip"
+    else:
+        print("Error: Neither uv nor pip found on PATH.")
+        print("Install uv: https://docs.astral.sh/uv/getting-started/installation/")
+        sys.exit(1)
+
+    print(f"Installer: {installer} ({uv_path or pip_path})")
+    print(f"Extras: {extras or 'none'}")
+    print(f"Running: {cmd}\n")
+
+    # 4. Run install
+    import subprocess
+
+    result = subprocess.run(cmd, shell=True, cwd=str(package_dir))
+    if result.returncode != 0:
+        print(f"\nInstall failed (exit code {result.returncode}).")
+        print(f"Try manually: cd {package_dir} && {cmd}")
+        sys.exit(result.returncode)
+
+    print("\nPackage installed successfully.")
+
+    # 5. Create brain directories
+    brain_path = find_brain_path()
+    if brain_path:
+        dirs = [
+            brain_path / "Operations" / "meetings" / "transcripts",
+            brain_path / "Operations" / "meetings" / "recordings",
+            brain_path / "Operations" / "meetings" / "_audio",
+            brain_path / ".bizbrain",
+        ]
+        created = []
+        for d in dirs:
+            if not d.exists():
+                d.mkdir(parents=True, exist_ok=True)
+                created.append(str(d.relative_to(brain_path)))
+        if created:
+            print(f"Created brain directories: {', '.join(created)}")
+        else:
+            print("Brain directories already exist.")
+    else:
+        print("Warning: No brain folder found. Directories will be created on first daemon run.")
+
+    # 6. macOS BlackHole check
+    if current_platform == "Darwin":
+        print("\nChecking macOS audio setup...")
+        try:
+            import sounddevice as sd
+
+            devices = sd.query_devices()
+            blackhole_found = any(
+                "blackhole" in d["name"].lower() and d["max_input_channels"] > 0
+                for d in devices
+            )
+            if blackhole_found:
+                print("BlackHole audio device: FOUND — audio routing ready.")
+            else:
+                print("BlackHole audio device: NOT FOUND")
+                print()
+                print("This is the ONE manual step required on macOS:")
+                print("  1. Install BlackHole 2ch: brew install blackhole-2ch")
+                print("     Or download from: https://existential.audio/blackhole/")
+                print("  2. Open Audio MIDI Setup (Applications > Utilities)")
+                print("  3. Click '+' → Create Multi-Output Device")
+                print("  4. Check both your speakers/headphones AND BlackHole 2ch")
+                print("  5. Set Multi-Output Device as system output (System Preferences > Sound)")
+                print()
+                print("Everything else is ready — just set up BlackHole and you're good to go.")
+        except ImportError:
+            print("Note: sounddevice not yet importable (may need shell restart).")
+            print("Run `bizbrain-meetings setup` after restarting to verify audio setup.")
+
+    print("\nDone. Run `bizbrain-meetings daemon` to start transcribing.")
+
+
 def cmd_setup(args: list[str]) -> None:
     """Check prerequisites and show platform-specific setup instructions."""
     current_platform = platform.system()
@@ -302,6 +410,7 @@ COMMANDS = {
     "status": cmd_status,
     "stop": cmd_stop,
     "setup": cmd_setup,
+    "install": cmd_install,
 }
 
 
@@ -314,6 +423,7 @@ def main() -> None:
         print("  status      Show daemon status")
         print("  stop        Stop the running daemon")
         print("  setup       Check prerequisites and show setup info")
+        print("  install     Auto-install package with platform dependencies")
         print("\nDaemon flags:")
         print("  --model tiny|base|small|medium|large-v3  Whisper model (default: base)")
         print("  --language en                            Force language (default: auto)")

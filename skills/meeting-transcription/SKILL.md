@@ -49,75 +49,51 @@ Check: BIZBRAIN_PATH env → ~/bizbrain-os/
 | Intake summaries | `<BRAIN>/_intake-dump/files/meeting-*.md` |
 | Python package | `${CLAUDE_PLUGIN_ROOT}/tools/meeting-transcriber/` |
 
-## Prerequisites
+## Auto-Install (Zero-Friction Setup)
 
-The meeting transcriber is a standalone Python package that needs to be installed once:
+The meeting transcriber auto-installs on first use. **Do NOT show install instructions to the user.**
 
-**Windows:**
-```bash
-cd ${CLAUDE_PLUGIN_ROOT}/tools/meeting-transcriber
-uv pip install -e ".[windows]"
-```
+### How Auto-Install Works
 
-**macOS:**
-```bash
-cd ${CLAUDE_PLUGIN_ROOT}/tools/meeting-transcriber
-uv pip install -e ".[macos]"
-```
+When ANY `/meetings` command is invoked, follow this sequence BEFORE executing the command:
 
-Or without platform extras (core only):
-```bash
-pip install -e ${CLAUDE_PLUGIN_ROOT}/tools/meeting-transcriber
-```
+1. **Check if installed** — run via Bash:
+   ```bash
+   python -c "import meeting_transcriber; print('installed')" 2>/dev/null && echo "OK" || echo "NOT_INSTALLED"
+   ```
 
-Required: Python 3.10+
+2. **If NOT_INSTALLED** — auto-install via Bash:
+   ```bash
+   bizbrain-meetings install
+   ```
+   This command (in `${CLAUDE_PLUGIN_ROOT}/tools/meeting-transcriber`) handles everything:
+   - Detects platform (Windows/macOS)
+   - Finds `uv` or falls back to `pip`
+   - Installs with correct platform extras
+   - Creates brain directories
+   - On macOS: checks for BlackHole and prints setup steps if missing
 
-### First-Time Setup
+3. **If install succeeds** (exit code 0) — proceed with the original command
+4. **If install fails** — show the error output and suggest:
+   ```
+   Manual install: cd ${CLAUDE_PLUGIN_ROOT}/tools/meeting-transcriber && uv pip install -e ".[windows]"
+   ```
+   (Replace `[windows]` with `[macos]` on macOS)
 
-When a user first uses `/meetings`, check:
+### Important: Run the Commands Yourself
 
-1. **Python available?** — Run `python --version` or `python3 --version`
-2. **Package installed?** — Run `bizbrain-meetings setup` to check all deps
-3. **Brain folder exists?** — Check BIZBRAIN_PATH or ~/bizbrain-os/
-4. **Meeting directories exist?** — Create `Operations/meetings/transcripts/`, `Operations/meetings/recordings/`, and `Operations/meetings/_audio/` if missing
+**You (Claude) run these commands via Bash. Do NOT show them to the user and ask them to run them.** The user should only see a brief status message like "Installing meeting transcriber..." followed by confirmation.
 
-If not installed, guide the user through setup:
-```
-To set up meeting transcription:
+### macOS BlackHole (One Manual Step)
 
-1. Install the package:
-   cd ${CLAUDE_PLUGIN_ROOT}/tools/meeting-transcriber
-   uv pip install -e ".[windows]"   # Windows
-   uv pip install -e ".[macos]"     # macOS
+macOS requires BlackHole for system audio capture. This is the ONE thing the user must do manually — `bizbrain-meetings install` will detect if BlackHole is missing and print instructions. If you see the BlackHole warning in install output, relay these steps to the user:
 
-2. (Optional) For speaker identification:
-   uv pip install -e ".[diarization]"
-   Set HF_TOKEN env var with your HuggingFace token
+1. Install BlackHole 2ch: `brew install blackhole-2ch` (or https://existential.audio/blackhole/)
+2. Open Audio MIDI Setup → Create Multi-Output Device
+3. Check both speakers/headphones AND BlackHole 2ch
+4. Set Multi-Output Device as system output
 
-3. Start the daemon:
-   bizbrain-meetings daemon
-```
-
-### macOS Setup (BlackHole)
-
-macOS requires BlackHole for system audio capture. Run `bizbrain-meetings setup` for
-automated checks, or follow these manual steps:
-
-1. **Install BlackHole 2ch:**
-   - Download from https://existential.audio/blackhole/
-   - Or: `brew install blackhole-2ch`
-
-2. **Create Multi-Output Device:**
-   - Open Audio MIDI Setup (Applications > Utilities)
-   - Click '+' → Create Multi-Output Device
-   - Check both your speakers/headphones AND BlackHole 2ch
-
-3. **Set as system output:**
-   - System Preferences > Sound > Output
-   - Select the Multi-Output Device
-
-This routes audio to both your ears AND BlackHole for capture. The daemon
-detects the BlackHole input device automatically.
+Windows requires no manual audio setup (WASAPI is built into the OS).
 
 ## Commands
 
@@ -130,26 +106,27 @@ Show current daemon status:
 
 ### `/meetings setup`
 
-Run first-time setup:
-1. Execute `bizbrain-meetings setup` via Bash
-2. Report any missing dependencies
-3. Guide user through platform-specific installation
+Run diagnostics (does NOT install — use `/meetings start` which auto-installs):
+1. Execute `bizbrain-meetings setup` via Bash (if installed) or `bizbrain-meetings install` (if not)
+2. Report dependency status and platform readiness
+3. On macOS: check BlackHole audio device configuration
 
 ### `/meetings start`
 
 Start the transcription daemon:
-1. Check if daemon is already running (read PID file, check if process exists)
-2. If not running, start it in the background:
+1. **Auto-install if needed** (follow the Auto-Install sequence above)
+2. Check if daemon is already running (read PID file, check if process exists)
+3. If not running, start it in the background:
    ```bash
    bizbrain-meetings daemon --model base &
    ```
-3. Available flags:
+4. Available flags:
    - `--model tiny|base|small|medium|large-v3` — Whisper model size (default: base)
    - `--language en` — Force language (default: auto-detect)
    - `--diarize` — Enable speaker diarization (needs pyannote + HF_TOKEN)
    - `--keep-audio` — Keep recordings forever (default)
    - `--delete-audio-after N` — Delete audio chunks after N days
-4. Confirm daemon started, show PID
+5. Confirm daemon started, show PID
 
 **Important:** The daemon is resource-intensive when transcribing (loads Whisper model into memory).
 The `base` model uses ~150MB RAM; `large-v3` uses ~3GB. Only start when the user expects a meeting.
