@@ -11,8 +11,8 @@
   <a href="#quick-install"><img src="https://img.shields.io/badge/Install-5_minutes-22c55e?style=flat-square" alt="Install in 5 minutes"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue?style=flat-square" alt="License"></a>
   <a href="#privacy--security"><img src="https://img.shields.io/badge/Privacy-100%25_Local-8b5cf6?style=flat-square" alt="100% Local"></a>
-  <img src="https://img.shields.io/badge/Skills-17-f59e0b?style=flat-square" alt="17 Skills">
-  <img src="https://img.shields.io/badge/Integrations-34+-ec4899?style=flat-square" alt="34+ Integrations">
+  <img src="https://img.shields.io/badge/Skills-21-f59e0b?style=flat-square" alt="21 Skills">
+  <img src="https://img.shields.io/badge/Integrations-37+-ec4899?style=flat-square" alt="37+ Integrations">
   <img src="https://img.shields.io/badge/Cost-$0/month-10b981?style=flat-square" alt="$0/month">
 </p>
 
@@ -20,6 +20,20 @@
 
 > **A localized context engine** that teaches Claude your business once, and gets smarter every day.
 > Open source under AGPL-3.0.
+
+---
+
+## What's New in v3.1.0 — Workspace & Browser Intelligence
+
+### Google Workspace Integration
+- **Hybrid architecture:** gwcli CLI for daily Gmail/Calendar/Drive (zero context cost) + full MCP on-demand for Docs/Sheets/Slides/Forms
+- **Brain integration:** Gmail → intake system, Calendar → entity history, Drive → document search
+- **Shared OAuth:** One Google Cloud credential set powers both tools
+
+### Browser Automation Stack
+- **Smart tool selection:** Playwright MCP (default) → Claude-in-Chrome → Puppeteer, auto-selected by task type
+- **Playwright MCP (Microsoft):** Cross-browser, headless, device emulation, accessibility-tree based — more reliable and token-efficient than extension-based approaches
+- **All tools coexist:** Use Playwright for testing/automation, Claude-in-Chrome for logged-in sessions, Puppeteer as fallback
 
 ---
 
@@ -249,6 +263,8 @@ Different work needs different context. BizBrain OS optimizes token budgets with
 |:--|:--------|:-------------|
 | **New** | **Meeting Transcription** | Local recording + transcription via faster-whisper. Replaces Otter.ai for $0/month. 100% private. |
 | **New** | **Brain Swarm** | Orchestration layer: event queue, staging validation, conflict detection, changelog audit trail, smart model routing. |
+| **New** | **Google Workspace** | Google Workspace integration (Gmail, Calendar, Drive via CLI + full MCP on-demand) |
+| **New** | **Browser Automation** | Smart browser tool selector (Playwright, Claude-in-Chrome, Puppeteer) |
 
 <br />
 
@@ -313,7 +329,7 @@ Four agents work automatically while you focus on your work:
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │                                                                      │
-│  BRAIN ORCHESTRATOR (v3.0.2)            ┌─ Entity Watchdog           │
+│  BRAIN ORCHESTRATOR (v3.1.0)            ┌─ Entity Watchdog           │
 │  Coordinates all agents via event       │  Monitors conversations    │
 │  queue, staging, validation,    ───────►│  for entity mentions,      │
 │  changelog, conflict detection          │  auto-updates records      │
@@ -336,14 +352,15 @@ The Orchestrator uses **smart model routing** — simple tasks go to haiku (fast
 
 ## Integrations
 
-BizBrain OS includes a registry of **34+ service integrations** with guided credential setup and automatic MCP configuration:
+BizBrain OS includes a registry of **37+ service integrations** with guided credential setup and automatic MCP configuration:
 
 | Category | Services |
 |:---------|:---------|
 | **Development** | GitHub, Supabase, Stripe, Clerk, Netlify, Vercel |
 | **Communication** | Slack, Discord, WhatsApp, Telegram, Gmail |
 | **Social** | X/Twitter, LinkedIn, Facebook, Instagram, Bluesky, TikTok, YouTube, Reddit, Threads |
-| **Productivity** | Notion, Google Drive, Google Calendar, Obsidian |
+| **Productivity** | Notion, Google Workspace (Gmail, Calendar, Drive, Docs, Sheets, Slides, Forms), Obsidian |
+| **Browser** | Playwright MCP, Claude-in-Chrome, Puppeteer |
 | **AI** | OpenAI, Anthropic, ElevenLabs, HeyGen, Veo 3 |
 | **Publishing** | Postiz, Late.dev, Buffer |
 | **Research** | Firecrawl, Screenpipe |
@@ -449,7 +466,7 @@ One product deployed to 3 clients with isolated databases and branding. One sync
 
 <br />
 
-## Brain Swarm (v3.0.2)
+## Brain Swarm (v3.1.0)
 
 The orchestration layer that coordinates all brain agents into a single system:
 
@@ -546,7 +563,7 @@ bizbrain-os-plugin/
 │   ├── swarm.md                # /swarm — orchestration
 │   └── ...                     # comms, content, outreach, archive
 │
-├── skills/                     # 17 deep capabilities
+├── skills/                     # 21 deep capabilities
 │   ├── brain-bootstrap/        # First-time setup wizard
 │   ├── brain-orchestration/    # Swarm coordination
 │   ├── entity-management/      # Entity CRUD + watchdog rules
@@ -559,6 +576,8 @@ bizbrain-os-plugin/
 │   ├── intake-processing/      # File classification + routing
 │   ├── session-archiving/      # Obsidian export
 │   ├── meeting-transcription/  # Local audio → text
+│   ├── google-workspace/       # Gmail, Calendar, Drive via CLI + MCP
+│   ├── browser-automation/     # Smart browser tool selector
 │   └── ...                     # mcp, comms, content, outreach, learning
 │
 ├── agents/                     # 4 background agents
@@ -578,7 +597,7 @@ bizbrain-os-plugin/
 └── lib/
     ├── default-config.json     # Brain config template
     ├── folder-structure.json   # Brain folder definitions
-    ├── integrations-registry.json  # 34+ service definitions
+    ├── integrations-registry.json  # 37+ service definitions
     └── zone-templates/         # CLAUDE.md templates per zone
 ```
 

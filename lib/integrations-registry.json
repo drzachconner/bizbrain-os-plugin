@@ -678,6 +678,74 @@
         "url": "https://resend.com/api-keys"
       },
       "what_it_enables": ["Email sequence sending", "Outreach automation", "Transactional emails"]
+    },
+    {
+      "id": "google-workspace-cli",
+      "name": "Google Workspace CLI",
+      "category": "productivity",
+      "description": "Lightweight CLI for Gmail, Calendar, and Drive. Token-efficient — zero context cost until invoked. Default tool for daily Google Workspace operations.",
+      "logo": "google.svg",
+      "logoColor": "#4285F4",
+      "setupType": "oauth",
+      "envVars": [
+        { "key": "GOOGLE_OAUTH_CLIENT_ID", "label": "OAuth Client ID", "secret": false },
+        { "key": "GOOGLE_OAUTH_CLIENT_SECRET", "label": "OAuth Client Secret", "secret": true }
+      ],
+      "cliTool": {
+        "command": "gwcli",
+        "install": "npm install -g google-workspace-cli",
+        "profileSetup": "gwcli profiles add personal --client ~/Downloads/client_secret_*.json"
+      },
+      "credentialGuide": {
+        "steps": ["Go to Google Cloud Console", "Create a new project", "Enable Gmail, Calendar, and Drive APIs", "Create OAuth 2.0 credentials (Desktop Application)", "Download client secret JSON", "Run: gwcli profiles add personal --client <path-to-json>"],
+        "url": "https://console.cloud.google.com/apis/credentials"
+      },
+      "what_it_enables": ["Email management via CLI", "Calendar operations", "Drive file search and download", "Gmail intake processing", "Entity-linked email history"]
+    },
+    {
+      "id": "google-workspace-mcp",
+      "name": "Google Workspace MCP",
+      "category": "productivity",
+      "description": "Full MCP server for all 12 Google Workspace services. Use on-demand via subprocess for Docs, Sheets, Slides, Forms, Chat, Tasks, Contacts, Apps Script.",
+      "logo": "google.svg",
+      "logoColor": "#4285F4",
+      "setupType": "oauth",
+      "envVars": [
+        { "key": "GOOGLE_OAUTH_CLIENT_ID", "label": "OAuth Client ID", "secret": false },
+        { "key": "GOOGLE_OAUTH_CLIENT_SECRET", "label": "OAuth Client Secret", "secret": true }
+      ],
+      "mcpServer": {
+        "name": "google-workspace",
+        "command": "uvx",
+        "args": ["workspace-mcp", "--tool-tier", "core"],
+        "env": { "GOOGLE_OAUTH_CLIENT_ID": "{{GOOGLE_OAUTH_CLIENT_ID}}", "GOOGLE_OAUTH_CLIENT_SECRET": "{{GOOGLE_OAUTH_CLIENT_SECRET}}" }
+      },
+      "credentialGuide": {
+        "steps": ["Go to Google Cloud Console", "Create a new project", "Enable ALL Google Workspace APIs (Gmail, Calendar, Drive, Docs, Sheets, Slides, Forms, Tasks)", "Create OAuth 2.0 credentials (Desktop Application)", "Set env vars: GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET"],
+        "url": "https://console.cloud.google.com/apis/credentials"
+      },
+      "what_it_enables": ["Full Google Docs read/write", "Spreadsheet manipulation", "Presentation creation", "Form management", "Google Chat messaging", "Task management", "Contact management", "Apps Script automation"]
+    },
+    {
+      "id": "playwright",
+      "name": "Playwright",
+      "category": "development",
+      "description": "Microsoft's official browser automation MCP. Cross-browser (Chrome, Firefox, Safari, Edge), headless mode, device emulation, accessibility-tree based interaction. Default browser automation tool.",
+      "logo": "playwright.svg",
+      "logoColor": "#2EAD33",
+      "setupType": "none",
+      "envVars": [],
+      "mcpServer": {
+        "name": "playwright",
+        "command": "npx",
+        "args": ["@playwright/mcp@latest"],
+        "env": {}
+      },
+      "credentialGuide": {
+        "steps": ["No credentials needed", "Add to Claude Code: claude mcp add playwright -- npx @playwright/mcp@latest", "Optionally configure: --headless, --browser, --viewport-size, --device"],
+        "url": "https://github.com/microsoft/playwright-mcp"
+      },
+      "what_it_enables": ["Cross-browser testing", "E2E test automation", "Visual QA screenshots", "Device emulation", "Headless automation", "PDF generation", "Form testing", "Web scraping"]
     }
   ]
 }
