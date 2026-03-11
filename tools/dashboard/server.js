@@ -17,17 +17,39 @@ function findBrainPath() {
     return process.env.BIZBRAIN_PATH;
   }
   const home = os.homedir();
-  const candidates = [
+  const roots = [
     path.join(home, 'bizbrain-os'),
-    path.join(home, 'bizbrain-os', 'brain'),
     path.join(home, 'Documents', 'bizbrain-os'),
   ];
-  for (const p of candidates) {
-    if (fs.existsSync(p) && (fs.existsSync(path.join(p, 'config.json')) || fs.existsSync(path.join(p, '.bizbrain')))) {
-      return p;
+  for (const root of roots) {
+    if (!fs.existsSync(root)) continue;
+    // Check for full mode (three-zone architecture)
+    const rootMarker = path.join(root, '.bizbrain-root.json');
+    if (fs.existsSync(rootMarker)) {
+      try {
+        const marker = JSON.parse(fs.readFileSync(rootMarker, 'utf8'));
+        if (marker.mode === 'full') {
+          const brainDir = path.join(root, marker.brainDir || 'brain');
+          if (fs.existsSync(brainDir)) return brainDir;
+        }
+      } catch { /* fall through */ }
     }
+    // Check for brain/ subdir with config (full mode without marker)
+    const brainSubdir = path.join(root, 'brain');
+    if (fs.existsSync(path.join(brainSubdir, 'config.json'))) return brainSubdir;
+    // Compact mode: config.json or .bizbrain at root
+    if (fs.existsSync(path.join(root, 'config.json')) || fs.existsSync(path.join(root, '.bizbrain'))) return root;
   }
   return null;
+}
+
+function findBrainRoot() {
+  const brainPath = findBrainPath();
+  if (!brainPath) return null;
+  // In full mode, root is parent of brain/
+  const parent = path.dirname(brainPath);
+  if (fs.existsSync(path.join(parent, '.bizbrain-root.json'))) return parent;
+  return brainPath;
 }
 
 function getBrainStats(brainPath) {
@@ -63,7 +85,9 @@ function countFiles(dir) {
 }
 
 function getProgressPath(brainPath) {
-  const dashDir = path.join(brainPath, '.bizbrain', 'dashboard');
+  // Store progress at root level .bizbrain/ (works for both compact and full mode)
+  const root = findBrainRoot() || brainPath;
+  const dashDir = path.join(root, '.bizbrain', 'dashboard');
   if (!fs.existsSync(dashDir)) fs.mkdirSync(dashDir, { recursive: true });
   return path.join(dashDir, 'progress.json');
 }
@@ -84,12 +108,17 @@ function writeProgress(brainPath, data) {
 
 app.get('/api/brain-status', (req, res) => {
   const brainPath = findBrainPath();
-  const rootMarker = brainPath ? path.join(brainPath, '..', '.bizbrain-root.json') : null;
-  const isFullMode = rootMarker && fs.existsSync(rootMarker);
+  const brainRoot = findBrainRoot();
+  const rootMarker = brainRoot ? path.join(brainRoot, '.bizbrain-root.json') : null;
+  let mode = 'compact';
+  if (rootMarker && fs.existsSync(rootMarker)) {
+    try { mode = JSON.parse(fs.readFileSync(rootMarker, 'utf8')).mode || 'compact'; } catch { /* ignore */ }
+  }
   res.json({
     exists: !!brainPath,
     path: brainPath,
-    mode: isFullMode ? 'full' : 'compact',
+    root: brainRoot,
+    mode,
     stats: getBrainStats(brainPath),
     homedir: os.homedir(),
   });
