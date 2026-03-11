@@ -34,6 +34,7 @@ if (!fs.existsSync(configPath)) {
     '|---------|-------------|',
     '| `/brain setup` | First-time setup: scan machine, pick profile, create brain |',
     '| `/brain status` | Show brain status and statistics |',
+    '| `/dashboard` | Launch the visual dashboard in your browser |',
   ].join('\n');
   process.stdout.write(output);
   process.exit(0);
@@ -97,6 +98,7 @@ function loadProjects() {
 function buildCommandsTable(zone) {
   const cmds = [
     ['`/brain`', 'Brain status, scan, configure, profiles'],
+    ['`/dashboard`', 'Visual dashboard — setup checklist, integrations, quick launch'],
     ['`/knowledge <topic>`', 'Load specific brain knowledge'],
     ['`/todo`', 'View and manage tasks'],
   ];
@@ -287,6 +289,7 @@ function generateWorkspacesContext() {
   lines.push('| `/gsd` | Project management workflow |');
   lines.push('| `/hours` | Time tracking |');
   lines.push('| `/entity <name>` | Look up entity |');
+  lines.push('| `/dashboard` | Visual dashboard in browser |');
   lines.push('| `/brain status` | Full brain dashboard |');
   lines.push('');
 
@@ -500,6 +503,7 @@ function generateExternalContext() {
   lines.push('| Command | Description |');
   lines.push('|---------|-------------|');
   lines.push('| `/brain status` | Brain dashboard |');
+  lines.push('| `/dashboard` | Visual dashboard in browser |');
   lines.push('| `/knowledge <topic>` | Load brain knowledge |');
   lines.push('| `/todo` | View and manage tasks |');
   lines.push('| `/entity <name>` | Look up entity |');

@@ -23,17 +23,24 @@
 
 ---
 
-## What's New in v3.1.0 — Workspace & Browser Intelligence
+## What's New in v3.3.0 — Visual Dashboard
 
-### Google Workspace Integration
-- **Hybrid architecture:** gwcli CLI for daily Gmail/Calendar/Drive (zero context cost) + full MCP on-demand for Docs/Sheets/Slides/Forms
-- **Brain integration:** Gmail → intake system, Calendar → entity history, Drive → document search
-- **Shared OAuth:** One Google Cloud credential set powers both tools
+### Visual Dashboard (`/dashboard`)
+- **Setup Checklist:** 37 tasks across 8 categories (Foundations, Memory, Communication, Productivity, Development, Business, Content, Advanced) with AI-generated icons
+- **One command launch:** Type `/dashboard` — dependencies auto-install, server starts, browser opens. Zero config.
+- **Progress tracking:** Ring visualization, category bars, recommended next steps — level up your brain visually
+- **Detail pages:** Each integration has a hero image, descriptions, benefits, use cases, prerequisites, and setup command
+- **Integrations hub:** See all 37+ services at a glance — connected vs available
+- **Quick Launch:** Open brain folder, conversations, repos, or start Claude Code with one click
+- **100% local:** Express server on port 3850, reads from your brain folder, nothing leaves your machine
 
-### Browser Automation Stack
-- **Smart tool selection:** Playwright MCP (default) → Claude-in-Chrome → Puppeteer, auto-selected by task type
-- **Playwright MCP (Microsoft):** Cross-browser, headless, device emulation, accessibility-tree based — more reliable and token-efficient than extension-based approaches
-- **All tools coexist:** Use Playwright for testing/automation, Claude-in-Chrome for logged-in sessions, Puppeteer as fallback
+### Previous Releases
+<details>
+<summary>v3.1.0 — Workspace & Browser Intelligence</summary>
+
+- **Google Workspace:** Gmail/Calendar/Drive via CLI + full MCP on-demand
+- **Browser Automation:** Smart tool selection (Playwright → Claude-in-Chrome → Puppeteer)
+</details>
 
 ---
 
@@ -117,6 +124,12 @@ claude
 ```
 
 **5 minutes later:** Every Claude Code session starts with your full business context automatically injected. You never re-explain yourself again.
+
+Then launch the visual dashboard:
+```bash
+> /dashboard
+```
+A browser-based command center opens with your setup checklist, integrations hub, and quick actions — all reading from your local brain.
 
 <br />
 
@@ -261,10 +274,11 @@ Different work needs different context. BizBrain OS optimizes token budgets with
 
 | | Feature | What It Does |
 |:--|:--------|:-------------|
+| **New** | **Visual Dashboard** | Browser-based command center with setup checklist, 37 AI-generated icons, progress tracking, integrations hub, and quick launch. |
 | **New** | **Meeting Transcription** | Local recording + transcription via faster-whisper. Replaces Otter.ai for $0/month. 100% private. |
 | **New** | **Brain Swarm** | Orchestration layer: event queue, staging validation, conflict detection, changelog audit trail, smart model routing. |
-| **New** | **Google Workspace** | Google Workspace integration (Gmail, Calendar, Drive via CLI + full MCP on-demand) |
-| **New** | **Browser Automation** | Smart browser tool selector (Playwright, Claude-in-Chrome, Puppeteer) |
+| | **Google Workspace** | Google Workspace integration (Gmail, Calendar, Drive via CLI + full MCP on-demand) |
+| | **Browser Automation** | Smart browser tool selector (Playwright, Claude-in-Chrome, Puppeteer) |
 
 <br />
 
@@ -274,6 +288,7 @@ Different work needs different context. BizBrain OS optimizes token budgets with
 /brain                  Brain status, setup, scan, configure, profile
 /brain setup            First-time setup wizard
 /brain scan             Re-scan machine for new projects
+/dashboard              Visual dashboard in your browser
 
 /entity <name>          Look up client, partner, vendor, or contact
 /todo                   Unified task dashboard across all sources
@@ -329,7 +344,7 @@ Four agents work automatically while you focus on your work:
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │                                                                      │
-│  BRAIN ORCHESTRATOR (v3.1.0)            ┌─ Entity Watchdog           │
+│  BRAIN ORCHESTRATOR (v3.3.0)            ┌─ Entity Watchdog           │
 │  Coordinates all agents via event       │  Monitors conversations    │
 │  queue, staging, validation,    ───────►│  for entity mentions,      │
 │  changelog, conflict detection          │  auto-updates records      │
@@ -466,7 +481,7 @@ One product deployed to 3 clients with isolated databases and branding. One sync
 
 <br />
 
-## Brain Swarm (v3.1.0)
+## Brain Swarm
 
 The orchestration layer that coordinates all brain agents into a single system:
 
@@ -550,7 +565,7 @@ bizbrain-os-plugin/
 │       ├── post-tool-use       # Continuous learning + time tracking
 │       └── session-end         # Session metadata + archive trigger
 │
-├── commands/                   # 14 slash commands
+├── commands/                   # 15 slash commands
 │   ├── brain.md                # /brain — status, setup, scan, configure
 │   ├── entity.md               # /entity — client/partner/vendor lookup
 │   ├── todo.md                 # /todo — unified task management
@@ -559,6 +574,7 @@ bizbrain-os-plugin/
 │   ├── hours.md                # /hours — time tracking
 │   ├── intake.md               # /intake — file processing
 │   ├── mcp.md                  # /mcp — MCP management
+│   ├── dashboard.md            # /dashboard — visual browser dashboard
 │   ├── meetings.md             # /meetings — local transcription
 │   ├── swarm.md                # /swarm — orchestration
 │   └── ...                     # comms, content, outreach, archive
@@ -592,6 +608,10 @@ bizbrain-os-plugin/
 │   └── generate-context.js     # SessionStart context builder
 │
 ├── tools/
+│   ├── dashboard/              # Visual dashboard (Express + vanilla JS)
+│   │   ├── server.js           # API server (port 3850)
+│   │   ├── generate-icons.js   # AI icon generation script
+│   │   └── public/             # SPA frontend (HTML/CSS/JS)
 │   └── meeting-transcriber/    # Python: local audio transcription
 │
 └── lib/

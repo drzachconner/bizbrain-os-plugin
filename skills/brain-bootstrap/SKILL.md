@@ -569,12 +569,16 @@ If the user selects a vault:
      • End a session → brain saves a summary for next time
 
    Quick commands to try:
+     /dashboard       — Launch the visual dashboard in your browser
      /brain status    — See your brain's current state
      /brain scan      — Re-scan for new projects
      /todo            — View tasks across all projects
      /entity <name>   — Look up any client or collaborator
      /gsd             — Structured project execution
      /swarm           — Brain Swarm orchestration (status, process, conflicts)
+
+   Try /dashboard first — it gives you a visual overview of your brain
+   with a setup checklist to unlock more capabilities.
 
    Restart Claude Code to activate all hooks and agents.
    ```
