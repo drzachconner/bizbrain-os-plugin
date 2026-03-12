@@ -268,13 +268,13 @@ mkdir skills/my-skill
 
 ## Subagent Orchestration
 
-| Subagent | When to Deploy |
-|----------|---------------|
-| **codebase-explorer** | Before modifying hook scripts, `generate-context.js`, or `scanner.sh` — understand how context injection and event queuing interact |
-| **docs-weaver** | After adding a new skill or command — update README feature tables and getting-started guide |
-| **code-review** | Before PRs — verify skill SKILL.md frontmatter is valid, command argument-hints are correct, profile JSONs have required fields |
-| **browser-navigator** | For end-to-end testing of the visual dashboard (`/dashboard` command + Express server on port 3850) |
-| **security-scanner** | After any change to credential-management skill or hooks that touch `Operations/credentials/` |
+| Subagent | When to Deploy | Model |
+|----------|---------------|-------|
+| **codebase-explorer** | Before modifying hook scripts, `generate-context.js`, or `scanner.sh` — understand how context injection and event queuing interact | sonnet |
+| **docs-weaver** | After adding a new skill or command — update README feature tables and getting-started guide | sonnet |
+| **code-review** | Before PRs — verify skill SKILL.md frontmatter is valid, command argument-hints are correct, profile JSONs have required fields | sonnet |
+| **browser-navigator** | For end-to-end testing of the visual dashboard (`/dashboard` command + Express server on port 3850) | sonnet |
+| **security-scanner** | After any change to credential-management skill or hooks that touch `Operations/credentials/` | sonnet |
 
 ## GSD + Teams Strategy
 
