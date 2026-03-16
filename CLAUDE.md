@@ -4,14 +4,6 @@
 
 BizBrain OS is a Claude Code plugin (v3.3.1) that creates a persistent, local-only knowledge brain for Claude Code sessions. It solves "context amnesia" — the problem of re-explaining your projects, clients, and tech stack at the start of every session — by automatically injecting your full business context at session start. The brain compounds over time: decisions, entities, patterns, and action items are captured continuously and made available in every future session.
 
-## Workflow Rules
-
-- **ALWAYS pull before working**: Run `git pull --rebase` before making any changes. This is mandatory for multi-machine sync.
-- **ALWAYS commit and push after making changes.** After completing ANY code changes, immediately stage modified files by name, commit with a descriptive message, and push. Every change must end with a successful `git push`.
-- **Never leave files behind.** Before ending any session, run `git status` and confirm zero untracked or modified files.
-- Never use `git add .` or `git add -A` — always add specific files by name.
-- Commit message format: conventional commits (feat:, fix:, chore:, docs:). Always include `Co-Authored-By: Claude <noreply@anthropic.com>`.
-
 ## Tech Stack
 
 - **Plugin System:** Claude Code Plugin API (v3.3.1)
