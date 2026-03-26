@@ -308,3 +308,6 @@ The plugin itself has no MCP dependencies. However, `lib/integrations-registry.j
 - **4 background agents**: brain-orchestrator, brain-learner, brain-gateway, entity-watchdog
 - **5 profiles**: developer, agency, consultant, content-creator, personal
 - **37+ integrations** in registry across development, communication, social, productivity, browser, AI, publishing, research, CRM categories
+
+## Google Workspace Account
+GWS Profile: `personal`
