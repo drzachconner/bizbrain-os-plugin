@@ -11,3 +11,9 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Runtime brain data (local-only, outside repo by design)
+.bizbrain/
+
+# Nested brain repo (separate git repo, not a submodule)
+bizbrain-os/
